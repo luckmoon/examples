@@ -44,8 +44,12 @@ device = torch.device("cuda" if args.cuda else "cpu")
 if args.temperature < 1e-3:
     parser.error("--temperature has to be greater or equal 1e-3")
 
+# args.chechpoint 是一个后缀为pt的文件
+# torch.load('tensors.pt')
+# # Load all tensors onto the CPU
 with open(args.checkpoint, 'rb') as f:
     model = torch.load(f).to(device)
+# 测试模型时，规避dropout,batchnorm等问题
 model.eval()
 
 corpus = data.Corpus(args.data)

@@ -20,6 +20,7 @@ class Dictionary(object):
 class Corpus(object):
     def __init__(self, path):
         self.dictionary = Dictionary()
+        # train.txt文件id化后的张量
         self.train = self.tokenize(os.path.join(path, 'train.txt'))
         self.valid = self.tokenize(os.path.join(path, 'valid.txt'))
         self.test = self.tokenize(os.path.join(path, 'test.txt'))
@@ -38,11 +39,14 @@ class Corpus(object):
 
         # Tokenize file content
         with open(path, 'r', encoding="utf8") as f:
-            ids = torch.LongTensor(tokens)
+            # 64-bit integer (signed) |	torch.LongTensor |  torch.cuda.LongTensor
+            # torch.Tensor是默认的tensor类型（torch.FlaotTensor）的简称。
+            ids = torch.LongTensor(tokens)  # tokens维张量
             token = 0
             for line in f:
                 words = line.split() + ['<eos>']
                 for word in words:
+                    # note：不是字典，是张量
                     ids[token] = self.dictionary.word2idx[word]
                     token += 1
 

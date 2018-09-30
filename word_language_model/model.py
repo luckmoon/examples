@@ -4,11 +4,14 @@ import torch.nn as nn
 class RNNModel(nn.Module):
     """Container module with an encoder, a recurrent module, and a decoder."""
 
+    # model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied).to(device)
     def __init__(self, rnn_type, ntoken, ninp, nhid, nlayers, dropout=0.5, tie_weights=False):
         super(RNNModel, self).__init__()
         self.drop = nn.Dropout(dropout)
         self.encoder = nn.Embedding(ntoken, ninp)
         if rnn_type in ['LSTM', 'GRU']:
+            # 不太懂，听厉害，可以模仿
+            # nn.lstm或者nn.gru
             self.rnn = getattr(nn, rnn_type)(ninp, nhid, nlayers, dropout=dropout)
         else:
             try:
@@ -25,6 +28,7 @@ class RNNModel(nn.Module):
         # and
         # "Tying Word Vectors and Word Classifiers: A Loss Framework for Language Modeling" (Inan et al. 2016)
         # https://arxiv.org/abs/1611.01462
+        # TODO：神奇的技术，看一下
         if tie_weights:
             if nhid != ninp:
                 raise ValueError('When using the tied flag, nhid must be equal to emsize')
@@ -52,6 +56,7 @@ class RNNModel(nn.Module):
     def init_hidden(self, bsz):
         weight = next(self.parameters())
         if self.rnn_type == 'LSTM':
+            # TODO： 为什么返回两个？
             return (weight.new_zeros(self.nlayers, bsz, self.nhid),
                     weight.new_zeros(self.nlayers, bsz, self.nhid))
         else:

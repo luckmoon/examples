@@ -75,16 +75,23 @@ corpus = data.Corpus(args.data)
 # batch processing.
 
 def batchify(data, bsz):
+    # data : [len(train.txt),]
     # Work out how cleanly we can divide the dataset into bsz parts.
-    nbatch = data.size(0) // bsz
+    # data.size(0) == len(tokes) + 1 ('<eos>')
+    nbatch = data.size(0) // bsz  # 取商
     # Trim off any extra elements that wouldn't cleanly fit (remainders).
+    # 暂时不懂，效果是把剩下的余数部分数据扔掉
     data = data.narrow(0, 0, nbatch * bsz)
     # Evenly divide the data across the bsz batches.
+    # .t()取转置
+    # .contiguous() 返回一个内存连续的有相同数据的tensor，如果原tensor内存连续则返回原tensor
     data = data.view(bsz, -1).t().contiguous()
     return data.to(device)
 
 
 eval_batch_size = 10
+# corpus.train --> data.Corpus对象中的train属性，即train.txt的idx化后的结果
+# train_data: [len(train.txt) // bsz, bsz]
 train_data = batchify(corpus.train, args.batch_size)
 val_data = batchify(corpus.valid, eval_batch_size)
 test_data = batchify(corpus.test, eval_batch_size)
@@ -94,6 +101,7 @@ test_data = batchify(corpus.test, eval_batch_size)
 ###############################################################################
 
 ntokens = len(corpus.dictionary)
+# model也要to(device)??
 model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied).to(device)
 
 criterion = nn.CrossEntropyLoss()
@@ -146,6 +154,7 @@ def evaluate(data_source):
 
 def train():
     # Turn on training mode which enables dropout.
+    # 上面这句注释很重要
     model.train()
     total_loss = 0.
     start_time = time.time()
@@ -155,6 +164,7 @@ def train():
         data, targets = get_batch(train_data, i)
         # Starting each batch, we detach the hidden state from how it was previously produced.
         # If we didn't, the model would try backpropagating all the way to start of the dataset.
+        # TODO：不懂！！
         hidden = repackage_hidden(hidden)
         model.zero_grad()
         output, hidden = model(data, hidden)
